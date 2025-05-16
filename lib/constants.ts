@@ -8,7 +8,7 @@ export const SUPPORTED_MODELS: OpenRouterModel[] = [
   {
     id: 'meta-llama/llama-3.2-3b-instruct:free',
     name: 'Llama 3.2 3B Instruct',
-  },
+  }/*,
   {
     id: 'deepseek/deepseek-chat-v3-0324:free',
     name: 'DeepSeek V3 0324',
@@ -21,6 +21,7 @@ export const SUPPORTED_MODELS: OpenRouterModel[] = [
     id: 'google/gemini-2.0-flash-exp:free',
     name: 'Gemini 2.0 Flash Experimental',
   }
+  */
 ];
 
 export const DEFAULT_MODEL_ID = 'meta-llama/llama-3.2-3b-instruct:free'; 
