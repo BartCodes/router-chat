@@ -24,47 +24,125 @@ export function MessageInput({
   const [message, setMessage] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
 
+  const createUserMessage = (content: string): Message => ({
+    id: uuidv4(),
+    role: 'user',
+    content: content.trim(),
+    createdAt: new Date()
+  });
+
+  const createEmptyAIMessage = (modelId: string): Message => ({
+    id: uuidv4(),
+    role: 'ai',
+    content: '',
+    modelId,
+    createdAt: new Date()
+  });
+
+  const appendMessageToHistory = (newMessage: Message) => {
+    setMessages(prev => [...prev, newMessage]);
+  };
+
+  const updateStreamedAIMessage = (aiMessageId: string, content: string) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === aiMessageId 
+        ? { ...msg, content: msg.content + content }
+        : msg
+    ));
+  };
+
+  const removeAIMessage = (aiMessageId: string) => {
+    setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
+  };
+
+  const processStreamingResponse = async (
+    stream: ReadableStream<Uint8Array>,
+    aiMessageId: string
+  ): Promise<void> => {
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Append new chunk to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines from buffer
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+          const line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+          
+          await processStreamLine(line.trim(), aiMessageId);
+        }
+      }
+      // Process any remaining buffer content
+      if (buffer) {
+        await processStreamLine(buffer.trim(), aiMessageId);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  };
+
+  const processStreamLine = async (
+    line: string,
+    aiMessageId: string
+  ): Promise<void> => {
+    if (!line || !line.startsWith('data: ')) return;
+
+    const data = line.slice(6);
+    if (data === '[DONE]') return;
+
+    try {
+      const parsed = JSON.parse(data);
+      const content = parsed.choices?.[0]?.delta?.content;
+      if (content) {
+        updateStreamedAIMessage(aiMessageId, content);
+      }
+    } catch (e) {
+      // Only log parsing errors for non-empty lines that aren't [DONE]
+      if (data !== '[DONE]' && data.trim()) {
+        console.error('Error parsing streaming data:', e);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || isLoading) return;
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || isLoading) return;
 
     setIsLoading(true);
     
-    // Create and add user message
-    const userMessage: Message = {
-      id: uuidv4(),
-      role: 'user',
-      content: message.trim(),
-      createdAt: new Date()
-    };
-    
-    // Update messages state with the new user message
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setMessage("");
-
     try {
-      // Process the message with OpenRouter, passing the complete conversation history
+      const userMessage = createUserMessage(trimmedMessage);
+      appendMessageToHistory(userMessage);
+      setMessage("");
+
+      // Get AI response
+      const updatedMessages = [...messages, userMessage];
       const result = await processUserMessage(updatedMessages, currentModelId);
 
-      if (result.success && result.response) {
-        // Add AI response to messages
-        const aiMessage: Message = {
-          id: uuidv4(),
-          role: 'ai',
-          content: result.response,
-          modelId: currentModelId,
-          createdAt: new Date()
-        };
-        // Update messages with the AI response
-        setMessages(prev => [...prev, aiMessage]);
-      } else {
-        // TODO: Show error toast
+      // Create placeholder for AI response
+      const aiMessage = createEmptyAIMessage(currentModelId);
+      appendMessageToHistory(aiMessage);
+
+      // Handle streaming response
+      if (result instanceof ReadableStream) {
+        await processStreamingResponse(result, aiMessage.id);
+      } else if (!result.success) {
         console.error('Error from AI:', result.error);
+        removeAIMessage(aiMessage.id);
+        // TODO: Show error toast
       }
     } catch (error) {
-      // TODO: Show error toast
       console.error('Error processing message:', error);
+      // TODO: Show error toast
     } finally {
       setIsLoading(false);
     }

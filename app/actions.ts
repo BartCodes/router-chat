@@ -5,7 +5,7 @@ import { Message } from '@/lib/types';
 export async function processUserMessage(
   conversationHistory: Message[],
   modelId: string
-): Promise<{ success: boolean; error?: string; response?: string }> {
+): Promise<ReadableStream<Uint8Array> | { success: boolean; error?: string }> {
   try {
     if (!conversationHistory?.length) {
       throw new Error('Conversation history is required');
@@ -38,7 +38,7 @@ export async function processUserMessage(
       body: JSON.stringify({
         model: modelId,
         messages,
-        stream: false,
+        stream: true,
         temperature: 0.7,
         max_tokens: 1000,
       })
@@ -49,17 +49,8 @@ export async function processUserMessage(
       throw new Error(error.message || 'Failed to get AI response');
     }
 
-    const data = await response.json();
-    const aiResponse = data.choices[0]?.message?.content;
-
-    if (!aiResponse) {
-      throw new Error('No response content from AI');
-    }
-
-    return {
-      success: true,
-      response: aiResponse
-    };
+    // Return the stream directly
+    return response.body as ReadableStream<Uint8Array>;
 
   } catch (error) {
     console.error('Error in processUserMessage:', error);
