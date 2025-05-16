@@ -7,7 +7,6 @@ export async function processUserMessage(
   modelId: string
 ): Promise<{ success: boolean; error?: string; response?: string }> {
   try {
-    // Validate inputs
     if (!conversationHistory?.length) {
       throw new Error('Conversation history is required');
     }
@@ -15,25 +14,30 @@ export async function processUserMessage(
       throw new Error('Model ID is required');
     }
 
-    // Format messages for OpenRouter API
-    const messages = conversationHistory.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }));
+    // Format messages for OpenRouter API - maintaining the exact sequence
+    const messages = conversationHistory.map(msg => {
+      // For AI messages, use 'assistant' role as per OpenRouter API spec
+      const role = msg.role === 'user' ? 'user' : 'assistant';
+      return {
+        role,
+        content: msg.content
+      };
+    });
 
-    // Make API request to OpenRouter
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000', // For rankings
-        'X-Title': 'RouterChat' // For rankings
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        'X-Title': 'RouterChat'
       },
       body: JSON.stringify({
         model: modelId,
         messages,
-        stream: false
+        stream: false,
+        temperature: 0.7,
+        max_tokens: 1000,
       })
     });
 
