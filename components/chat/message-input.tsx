@@ -137,8 +137,8 @@ export function MessageInput({
         await processStreamingResponse(result, aiMessage.id);
       } else if (!result.success) {
         console.error('Error from AI:', result.error);
-        removeAIMessage(aiMessage.id);
-        // TODO: Show error toast
+        // Display the error message in the chat
+        updateStreamedAIMessage(aiMessage.id, `Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error processing message:', error);
@@ -156,7 +156,7 @@ export function MessageInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-4 border-t border-default-200 bg-content1">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-4 border-t border-default-200 bg-content1 shrink-0">
       <div className="flex gap-2">
         <Textarea
           value={message}

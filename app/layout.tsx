@@ -31,9 +31,11 @@ export default function RootLayout({
       >
         <SidebarProvider>
           <AppSidebar />
-          <main className="w-full">
-            <SidebarTrigger className="fixed z-10 hover:cursor-pointer"/>
-            {children}
+          <main className="w-full h-screen overflow-hidden">
+            <div className="relative flex flex-col h-full">
+              <SidebarTrigger className="absolute top-4 left-4 z-10 hover:cursor-pointer"/>
+              {children}
+            </div>
           </main>
         </SidebarProvider>
       </body>

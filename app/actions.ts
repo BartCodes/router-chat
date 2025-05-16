@@ -45,8 +45,9 @@ export async function processUserMessage(
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to get AI response');
+      const errResponse = await response.json();
+      const errMsg = errResponse.error?.message || errResponse.message || 'Failed to get AI response';
+      throw new Error(errMsg);
     }
 
     // Return the stream directly

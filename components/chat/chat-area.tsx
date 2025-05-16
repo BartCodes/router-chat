@@ -16,8 +16,8 @@ export function ChatArea({ messages }: ChatAreaProps) {
   const isStreaming = messages.length > 0 && messages[messages.length - 1].role === 'ai' && messages[messages.length - 1].content === '';
 
   return (
-    <div className="flex-1 h-full relative bg-content1">
-      <ScrollArea className="h-[calc(100vh-180px)] w-full">
+    <div className="flex-1 relative bg-content1">
+      <ScrollArea className="h-full w-full">
         <div className="flex flex-col space-y-4 p-4">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
