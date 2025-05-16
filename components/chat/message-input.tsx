@@ -14,14 +14,12 @@ interface MessageInputProps {
   messages: Message[];
   setMessages: Dispatch<SetStateAction<Message[]>>;
   currentModelId: string;
-  setCurrentModelId: Dispatch<SetStateAction<string>>;
 }
 
 export function MessageInput({ 
   messages, 
   setMessages, 
   currentModelId,
-  setCurrentModelId 
 }: MessageInputProps) {
   const [message, setMessage] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);

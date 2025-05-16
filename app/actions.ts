@@ -13,6 +13,9 @@ export async function processUserMessage(
     if (!modelId) {
       throw new Error('Model ID is required');
     }
+    if(!modelId.endsWith(':free')) {
+      throw new Error('Wrong model ID. Must be a free model');
+    }
 
     // Format messages for OpenRouter API - maintaining the exact sequence
     const messages = conversationHistory.map(msg => {

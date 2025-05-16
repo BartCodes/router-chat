@@ -6,13 +6,12 @@ import { MessageInput } from "@/components/chat/message-input";
 import type { Message } from '@/lib/types';
 
 // Will move this to constants later
-const DEFAULT_MODEL_ID = 'meta-llama/llama-3.3-8b-instruct:free';
+const DEFAULT_MODEL_ID = 'meta-llama/llama-3.2-3b-instruct:free';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   
-  const [currentModelIdForNextMessage, setCurrentModelIdForNextMessage] = 
-    useState<string>(DEFAULT_MODEL_ID);
+  const currentModelIdForNextMessage = DEFAULT_MODEL_ID;
 
   return (
     <div className="flex flex-col h-[calc(100vh-1px)] w-full bg-background">
@@ -25,7 +24,6 @@ export default function Home() {
           messages={messages}
           setMessages={setMessages}
           currentModelId={currentModelIdForNextMessage}
-          setCurrentModelId={setCurrentModelIdForNextMessage}
         />
       </div>
     </div>
