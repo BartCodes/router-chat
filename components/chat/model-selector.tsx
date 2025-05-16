@@ -1,6 +1,5 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
 import {
   Select,
   SelectContent,
@@ -13,7 +12,7 @@ import { SUPPORTED_MODELS } from "@/lib/constants";
 
 interface ModelSelectorProps {
   currentModelId: string;
-  setCurrentModelId: Dispatch<SetStateAction<string>>;
+  setCurrentModelId: (modelId: string) => void;
 }
 
 export function ModelSelector({ 
