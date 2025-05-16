@@ -50,11 +50,7 @@ export function MessageInput({
         : msg
     ));
   };
-
-  const removeAIMessage = (aiMessageId: string) => {
-    setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
-  };
-
+  
   const processStreamingResponse = async (
     stream: ReadableStream<Uint8Array>,
     aiMessageId: string
