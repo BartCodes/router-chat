@@ -42,17 +42,17 @@ const items = [
 
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar className="border-r border-default-200 bg-content1">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-default-500">Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
+                    <a href={item.url} className="text-foreground hover:bg-content2 hover:text-primary">
+                      <item.icon className="text-default-500" />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
