@@ -5,9 +5,11 @@ import type { Conversation, Message } from '@/lib/types';
 import { DEFAULT_MODEL_ID } from '@/lib/constants';
 import {
   saveConversation,
+  updateConversation,
   loadConversations,
   saveLastSelectedModelId,
-  loadLastSelectedModelId
+  loadLastSelectedModelId,
+  deleteConversation,
 } from '@/lib/local-storage';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,6 +24,8 @@ interface ChatContextType {
   setCurrentModelId: (modelId: string) => void;
   handleNewChat: (modelToSet?: string) => void;
   handleSelectConversation: (conversationId: string) => void;
+  handleEditConversationName: (conversationId: string, newName: string) => void;
+  handleDeleteConversation: (conversationId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -48,6 +52,59 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     _setCurrentModelId(modelId);
     saveLastSelectedModelId(modelId);
   }, []);
+
+  // Forward declaration for handleNewChat to be used in handleDeleteConversation
+  const handleNewChatRef = React.useRef<((modelToSet?: string) => void) | null>(null);
+
+  const handleEditConversationName = useCallback((conversationId: string, newName: string) => {
+    let updatedConvForStorage: Conversation | undefined;
+    setConversations(prevConversations => {
+      const newConversations = prevConversations.map(conv => {
+        if (conv.id === conversationId) {
+          updatedConvForStorage = { ...conv, name: newName, updatedAt: new Date() };
+          return updatedConvForStorage;
+        }
+        return conv;
+      });
+      // Save the specific conversation that was edited to local storage
+      if (updatedConvForStorage) {
+        updateConversation(updatedConvForStorage);
+      }
+      return newConversations.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    });
+    setActiveConversation(prevActiveConv => 
+      prevActiveConv && prevActiveConv.id === conversationId 
+        ? { ...prevActiveConv, name: newName, updatedAt: new Date() } 
+        : prevActiveConv
+    );
+  }, [setActiveConversation, setConversations]);
+
+  const handleDeleteConversation = useCallback((conversationId: string) => {
+    deleteConversation(conversationId); // from local-storage.ts
+
+    setConversations(prevConversations => {
+      const remainingConversations = prevConversations.filter(conv => conv.id !== conversationId);
+      
+      if (activeConversation && activeConversation.id === conversationId) {
+        if (remainingConversations.length > 0) {
+          const nextActive = remainingConversations.sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+          setActiveConversation(nextActive);
+          setMessages(nextActive.messages);
+          const lastAiMessage = nextActive.messages.filter(m => m.role === 'ai').pop();
+          if (lastAiMessage?.modelId) {
+            setCurrentModelId(lastAiMessage.modelId);
+          } else {
+            setCurrentModelId(loadLastSelectedModelId() || DEFAULT_MODEL_ID);
+          }
+        } else {
+          if (handleNewChatRef.current) {
+            handleNewChatRef.current(); 
+          }
+        }
+      }
+      return remainingConversations;
+    });
+  }, [activeConversation, setCurrentModelId, setActiveConversation, setMessages, setConversations]);
 
   const handleNewChat = useCallback((modelToSet?: string) => {
     const newConversationId = uuidv4();
@@ -82,6 +139,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     setCurrentModelId(modelToSet || loadLastSelectedModelId() || DEFAULT_MODEL_ID);
 
   }, [setCurrentModelId, setActiveConversation, setMessages, conversations]);
+
+  // Assign the implementation to the ref after it's defined.
+  useEffect(() => {
+    handleNewChatRef.current = handleNewChat;
+  }, [handleNewChat]);
 
   useEffect(() => {
     const loadedConvos = loadConversations();
@@ -159,6 +221,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     setCurrentModelId,
     handleNewChat,
     handleSelectConversation,
+    handleEditConversationName,
+    handleDeleteConversation,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

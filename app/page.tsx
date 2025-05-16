@@ -15,6 +15,7 @@ export default function Home() {
     setCurrentModelId,
     activeConversation,
     setActiveConversation,
+    conversations,
   } = useChat();
 
   const handleUserMessageSend = (newUserMessage: Message) => {
@@ -63,8 +64,11 @@ export default function Home() {
             console.error("handleAiMessageUpdate: prevActiveConversation is null inside setActiveConversation update.");
             return null; 
           }
+          const currentConversationFromList = conversations.find(c => c.id === prevActiveConversation.id);
+          const baseConversation = currentConversationFromList || prevActiveConversation;
+
           const updatedConv: Conversation = {
-              ...prevActiveConversation,
+              ...baseConversation,
               messages: newDisplayMessages,
               updatedAt: new Date(),
           };
