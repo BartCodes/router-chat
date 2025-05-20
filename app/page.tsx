@@ -95,7 +95,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b border-default-200">
+      <div className="flex items-center justify-end p-4 border-b border-default-200">
         <ModelSelector 
           currentModelId={currentModelId}
           setCurrentModelId={setCurrentModelId} 
