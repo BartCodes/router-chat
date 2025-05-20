@@ -16,44 +16,44 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ messages, conversationId }: ChatAreaProps) {
-  // Check if we're waiting for an AI response (last message is from user)
   const isWaitingForAI = messages.length > 0 && messages[messages.length - 1].role === 'user';
   
-  // Check if we're currently streaming (last message is from AI with empty content)
   const isStreaming = messages.length > 0 && messages[messages.length - 1].role === 'ai' && messages[messages.length - 1].content === '';
 
-  // Create a ref for the message container
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null); // Ref for the ScrollArea root
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const scrollAreaViewportRef = useRef<HTMLDivElement>(null); // Added ref for ScrollArea viewport
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
 
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
 
   const checkScrollability = useCallback(() => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    const viewport = scrollAreaViewportRef.current;
     if (viewport) {
       const { scrollTop, scrollHeight, clientHeight } = viewport;
-      setCanScrollUp(scrollTop > 20); // 20px buffer to avoid flickering
-      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 20); // 20px buffer
+      setCanScrollUp(scrollTop > 1); 
+      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 1);
     }
   }, []);
 
-  // Scroll to bottom whenever messages change & recheck scrollability
+  // Scroll to bottom whenever messages change
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
-      }
-      checkScrollability(); // Check after scroll
-    }, 250);
+    const viewport = scrollAreaViewportRef.current;
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
+    }
 
-    return () => clearTimeout(timer);
-  }, [messages, checkScrollability]);
+    // Check scrollability after a short delay to allow the DOM to settle.
+    const scrollabilityTimer = setTimeout(() => {
+      checkScrollability();
+    }, 200); // Delay for checkScrollability, not the scroll itself.
+
+    return () => clearTimeout(scrollabilityTimer);
+  }, [messages, checkScrollability]); // Effect primarily driven by messages
 
   const handleScrollIndicatorClick = useCallback((direction: 'up' | 'down') => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    const viewport = scrollAreaViewportRef.current; // Use direct ref
     if (viewport) {
       if (direction === 'up') {
         viewport.scrollTo({
@@ -66,12 +66,14 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
           behavior: 'smooth',
         });
       }
+      // Re-check scrollability after manual scroll, giving time for smooth scroll to complete
+      setTimeout(checkScrollability, 300);
     }
-  }, []);
+  }, [checkScrollability]);
 
   // Setup event listeners and observers
   useEffect(() => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    const viewport = scrollAreaViewportRef.current; // Use direct ref
     const messagesContainer = messagesContainerRef.current;
 
     if (!viewport || !messagesContainer) return;
@@ -80,7 +82,15 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     viewport.addEventListener('scroll', handleScroll);
 
     const resizeObserver = new ResizeObserver(() => {
-      checkScrollability();
+      if (viewport) {
+        // If near bottom, scroll to bottom on resize (e.g. new streamed content)
+        // This prevents auto-scrolling if the user has scrolled up significantly.
+        const isNearBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 30; // 30px tolerance
+        if (isNearBottom) {
+          viewport.scrollTop = viewport.scrollHeight;
+        }
+      }
+      checkScrollability(); // Always update scroll indicators
     });
     resizeObserver.observe(viewport);
     resizeObserver.observe(messagesContainer);

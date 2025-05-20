@@ -52,6 +52,8 @@ export function AppSidebar() {
   const [conversationToEdit, setConversationToEdit] = React.useState<string | null>(null);
   const [newConversationName, setNewConversationName] = React.useState("");
 
+  const editInputRef = React.useRef<HTMLInputElement>(null);
+
   const onEditName = (e: React.MouseEvent, conversationId: string) => {
     e.stopPropagation(); // Prevent row click
     const currentConversation = conversations.find(conv => conv.id === conversationId);
@@ -164,7 +166,10 @@ export function AppSidebar() {
 
       {/* Edit Conversation Name Dialog */}
       <AlertDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          editInputRef.current?.focus();
+        }}>
           <AlertDialogHeader>
             <AlertDialogTitle>Edit conversation name</AlertDialogTitle>
             <AlertDialogDescription>
@@ -172,6 +177,7 @@ export function AppSidebar() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input 
+            ref={editInputRef}
             value={newConversationName} 
             onChange={(e) => setNewConversationName(e.target.value)} 
             placeholder="Conversation name"
