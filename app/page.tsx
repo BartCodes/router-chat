@@ -106,6 +106,7 @@ export default function Home() {
         <div className="flex-1 min-h-0">
           <ChatArea 
             messages={messages}
+            conversationId={activeConversation?.id}
           />
         </div>
         

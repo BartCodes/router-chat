@@ -1,19 +1,20 @@
 "use client";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import type { Message } from "@/lib/types";
 import { UserMessageBubble } from "./user-message-bubble";
 import { AIMessageBubble } from "./ai-message-bubble";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
 interface ChatAreaProps {
   messages: Message[];
+  conversationId?: string;
 }
 
-export function ChatArea({ messages }: ChatAreaProps) {
+export function ChatArea({ messages, conversationId }: ChatAreaProps) {
   // Check if we're waiting for an AI response (last message is from user)
   const isWaitingForAI = messages.length > 0 && messages[messages.length - 1].role === 'user';
   
@@ -22,20 +23,84 @@ export function ChatArea({ messages }: ChatAreaProps) {
 
   // Create a ref for the message container
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null); // Ref for the ScrollArea root
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom whenever messages change
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const checkScrollability = useCallback(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    if (viewport) {
+      const { scrollTop, scrollHeight, clientHeight } = viewport;
+      setCanScrollUp(scrollTop > 5); // 5px buffer to avoid flickering
+      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 5); // 5px buffer
+    }
+  }, []);
+
+  // Scroll to bottom whenever messages change & recheck scrollability
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    const timer = setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+      }
+      checkScrollability(); // Check after scroll
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [messages, checkScrollability]);
+
+  const handleScrollIndicatorClick = useCallback((direction: 'up' | 'down') => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    if (viewport) {
+      if (direction === 'up') {
+        viewport.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      } else {
+        viewport.scrollTo({
+          top: viewport.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, []);
+
+  // Setup event listeners and observers
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    const messagesContainer = messagesContainerRef.current;
+
+    if (!viewport || !messagesContainer) return;
+
+    const handleScroll = () => checkScrollability();
+    viewport.addEventListener('scroll', handleScroll);
+
+    const resizeObserver = new ResizeObserver(() => {
+      checkScrollability();
+    });
+    resizeObserver.observe(viewport);
+    resizeObserver.observe(messagesContainer);
+
+    // Initial check
+    checkScrollability();
+
+    return () => {
+      viewport.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, [checkScrollability]);
 
   // Create a key for the conversation to trigger animations when switching
-  const conversationKey = messages.length > 0 ? `conversation-${messages[0].id}` : "empty-conversation";
+  const conversationKey = conversationId || "empty-conversation";
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex-1 flex flex-col h-full overflow-hidden relative" ref={scrollAreaRef}>
       <ScrollArea className="flex-1 h-full">
         <AnimatePresence mode="wait">
           <motion.div 
+            ref={messagesContainerRef}
             key={conversationKey}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -91,6 +156,36 @@ export function ChatArea({ messages }: ChatAreaProps) {
           </motion.div>
         </AnimatePresence>
       </ScrollArea>
+
+      <AnimatePresence>
+        {canScrollUp && (
+          <motion.div
+            onClick={() => handleScrollIndicatorClick('up')}
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-12 bg-gradient-to-b from-background via-background/80 to-transparent z-10 flex justify-center items-start pt-2 hover:cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {canScrollDown && (
+          <motion.div
+            onClick={() => handleScrollIndicatorClick('down')}
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-12 bg-gradient-to-t from-background via-background/80 to-transparent z-10 flex justify-center items-end pb-2 hover:cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
