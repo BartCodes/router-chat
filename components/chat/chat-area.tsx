@@ -33,8 +33,8 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
     if (viewport) {
       const { scrollTop, scrollHeight, clientHeight } = viewport;
-      setCanScrollUp(scrollTop > 5); // 5px buffer to avoid flickering
-      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 5); // 5px buffer
+      setCanScrollUp(scrollTop > 20); // 20px buffer to avoid flickering
+      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 20); // 20px buffer
     }
   }, []);
 

@@ -5,8 +5,7 @@ import * as React from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import type { Message, Conversation } from "@/lib/types";
 import { processUserMessage } from "@/app/actions";
 import { useChat } from "@/components/chat-provider";
@@ -92,7 +91,7 @@ export function MessageInput({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const trimmedMessage = messageContent.trim();
     if (!trimmedMessage || isAiResponding || !activeConversation) return;
@@ -132,36 +131,26 @@ export function MessageInput({
       setIsAiResponding(false);
     }
   };
+  
+  const placeholders = [
+    "What's the meaning of life?",
+    "Explain quantum computing in simple terms.",
+    "What are the best restaurants near me?",
+    "Tell me a joke.",
+    "How does the stock market work?",
+  ];
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessageContent(e.target.value);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-4 border-t border-default-200 bg-content1 shrink-0 z-10">
-      <div className="flex gap-2">
-        <Textarea
-          value={messageContent}
-          onChange={(e) => setMessageContent(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className="min-h-[56px] max-h-[200px] resize-none bg-content2 border-default-200"
-          aria-label="Message input"
-          disabled={isAiResponding || !activeConversation}
-        />
-        <Button 
-          type="submit" 
-          size="icon"
-          className="h-[56px] w-[56px] shrink-0 bg-primary hover:bg-primary-500 text-primary-foreground hover:cursor-pointer"
-          disabled={!messageContent.trim() || isAiResponding || !activeConversation}
-        >
-          <SendIcon className="size-5" />
-          <span className="sr-only">Send message</span>
-        </Button>
-      </div>
-    </form>
+    <div className="p-4 border-t border-default-200 bg-content1 shrink-0 z-10">
+      <PlaceholdersAndVanishInput
+        placeholders={placeholders}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+      />
+    </div>
   );
 } 

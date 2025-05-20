@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/types";
 import { motion } from "motion/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface UserMessageBubbleProps {
   message: Message;
@@ -17,7 +19,7 @@ export function UserMessageBubble({ message, className }: UserMessageBubbleProps
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
-          <p>{message.content}</p>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
         </motion.div>
       </div>
     </div>
