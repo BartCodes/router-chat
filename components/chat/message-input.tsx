@@ -3,11 +3,13 @@
 import { SendIcon } from "lucide-react";
 import * as React from "react";
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Message, Conversation } from "@/lib/types";
 import { processUserMessage } from "@/app/actions";
+import { useChat } from "@/components/chat-provider";
 
 interface MessageInputProps {
   activeConversation: Conversation | null;
@@ -25,7 +27,7 @@ export function MessageInput({
   currentModelId,
 }: MessageInputProps) {
   const [messageContent, setMessageContent] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { isAiResponding, setIsAiResponding } = useChat();
 
   const createUserMessage = (content: string): Message => ({
     id: uuidv4(),
@@ -93,9 +95,9 @@ export function MessageInput({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedMessage = messageContent.trim();
-    if (!trimmedMessage || isLoading || !activeConversation) return;
+    if (!trimmedMessage || isAiResponding || !activeConversation) return;
 
-    setIsLoading(true);
+    setIsAiResponding(true);
     
     try {
       const userMessage = createUserMessage(trimmedMessage);
@@ -112,7 +114,9 @@ export function MessageInput({
         await processStreamingResponse(result, aiMessageId, currentModelId);
       } else if (!result.success) {
         console.error('Error from AI:', result.error);
-        onAiMessageUpdate(aiMessageId, `Error: ${result.error}`, currentModelId);
+        const errorMessage = result.error || "Unknown error from AI";
+        toast.error(`AI Error: ${errorMessage}`);
+        onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
         onAiResponseComplete(aiMessageId);
       } else {
         console.warn("Received non-streaming success, but streaming was expected.");
@@ -121,10 +125,11 @@ export function MessageInput({
       console.error('Error processing message:', error);
       const aiMessageId = uuidv4();
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during submission.";
+      toast.error(`Error: ${errorMessage}`);
       onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
       onAiResponseComplete(aiMessageId);
     } finally {
-      setIsLoading(false);
+      setIsAiResponding(false);
     }
   };
 
@@ -145,13 +150,13 @@ export function MessageInput({
           placeholder="Type a message..."
           className="min-h-[56px] max-h-[200px] resize-none bg-content2 border-default-200"
           aria-label="Message input"
-          disabled={isLoading || !activeConversation}
+          disabled={isAiResponding || !activeConversation}
         />
         <Button 
           type="submit" 
           size="icon"
           className="h-[56px] w-[56px] shrink-0 bg-primary hover:bg-primary-500 text-primary-foreground hover:cursor-pointer"
-          disabled={!messageContent.trim() || isLoading || !activeConversation}
+          disabled={!messageContent.trim() || isAiResponding || !activeConversation}
         >
           <SendIcon className="size-5" />
           <span className="sr-only">Send message</span>

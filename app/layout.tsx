@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import React from "react";
 import { ChatProvider } from "@/components/chat-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "RouterChat",
-  description: "RouterChat is a web-based AI chatbot interface built as a portfolio project. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models.",
+  description: "RouterChat is a web-based AI chatbot interface. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models.",
 };
 
 export default function RootLayout({
@@ -40,6 +41,7 @@ export default function RootLayout({
                 {children}
               </div>
             </main>
+            <Toaster />
           </ChatProvider>
         </SidebarProvider>
       </body>

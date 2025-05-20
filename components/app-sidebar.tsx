@@ -42,6 +42,7 @@ export function AppSidebar() {
     handleSelectConversation,
     handleEditConversationName,
     handleDeleteConversation,
+    isAiResponding,
   } = useChat();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -110,23 +111,23 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       asChild
                       isActive={conv.id === activeConversation?.id}
-                      className={`w-full text-foreground group hover:bg-content2 hover:text-primary hover:cursor-pointer ${conv.id === activeConversation?.id ? 'bg-content2 text-primary' : ''}`}
+                      className={`w-full text-foreground group hover:bg-content2 hover:text-primary hover:cursor-pointer ${conv.id === activeConversation?.id ? 'bg-content2 text-primary' : ''} ${isAiResponding ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div onClick={() => handleSelectConversation(conv.id)} className="flex items-center w-full">
+                      <div onClick={() => !isAiResponding && handleSelectConversation(conv.id)} className="flex items-center w-full">
                         <MessageSquareText size={16} className={conv.id === activeConversation?.id ? "text-primary" : "text-default-500 group-hover:text-primary"} />
                         <span className="truncate flex-1 ml-2">{conv.name}</span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className={`h-7 w-7 ml-auto opacity-0 group-hover:opacity-100 focus-visible:opacity-100 ${activeConversation?.id === conv.id ? 'opacity-100' : ''}`}>
+                            <Button variant="ghost" size="icon" className={`h-7 w-7 ml-auto opacity-0 group-hover:opacity-100 focus-visible:opacity-100 ${activeConversation?.id === conv.id ? 'opacity-100' : ''} ${isAiResponding ? 'cursor-not-allowed' : ''}`} disabled={isAiResponding}>
                               <MoreHorizontal size={16} />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="right" align="start" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenuItem onClick={(e) => onEditName(e, conv.id)} className="hover:cursor-pointer">
+                            <DropdownMenuItem onClick={(e) => !isAiResponding && onEditName(e, conv.id)} className={`hover:cursor-pointer ${isAiResponding ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={isAiResponding}>
                               <Edit3 size={14} className="mr-2" />
                               Edit name
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => onDeleteConversation(e, conv.id)} variant="destructive" className="hover:cursor-pointer text-danger">
+                            <DropdownMenuItem onClick={(e) => !isAiResponding && onDeleteConversation(e, conv.id)} variant="destructive" className={`hover:cursor-pointer text-danger ${isAiResponding ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={isAiResponding}>
                               <Trash2 size={14} className="mr-2" />
                               Delete
                             </DropdownMenuItem>

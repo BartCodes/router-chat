@@ -26,6 +26,8 @@ interface ChatContextType {
   handleSelectConversation: (conversationId: string) => void;
   handleEditConversationName: (conversationId: string, newName: string) => void;
   handleDeleteConversation: (conversationId: string) => void;
+  isAiResponding: boolean;
+  setIsAiResponding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentModelId, _setCurrentModelId] = useState(DEFAULT_MODEL_ID);
+  const [isAiResponding, setIsAiResponding] = useState(false);
 
   const setCurrentModelId = useCallback((modelId: string) => {
     _setCurrentModelId(modelId);
@@ -223,6 +226,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     handleSelectConversation,
     handleEditConversationName,
     handleDeleteConversation,
+    isAiResponding,
+    setIsAiResponding,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
