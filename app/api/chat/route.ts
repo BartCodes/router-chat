@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
   if (!modelId) {
     return NextResponse.json({ success: false, error: 'Model ID is required' }, { status: 400 });
   }
-
+  if(!modelId.endsWith(':free')) {
+    return NextResponse.json({ success: false, error: 'This model is not supported' }, { status: 400 });
+  }
+  
   try {
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
