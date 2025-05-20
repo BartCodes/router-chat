@@ -1,11 +1,15 @@
 'use server';
 
+import { connection } from 'next/server'
 import { Message } from '@/lib/types';
+
+
 
 export async function processUserMessage(
   conversationHistory: Message[],
   modelId: string
 ): Promise<ReadableStream<Uint8Array> | { success: boolean; error?: string }> {
+  await connection();
   try {
     if (!conversationHistory?.length) {
       throw new Error('Conversation history is required');
