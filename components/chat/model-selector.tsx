@@ -24,7 +24,7 @@ export function ModelSelector({
       value={currentModelId}
       onValueChange={setCurrentModelId}
     >
-      <SelectTrigger className="w-[200px] bg-content2 border-default-200 hover:cursor-pointer">
+      <SelectTrigger className="ml-10 w-[200px] bg-content2 border-default-200 hover:cursor-pointer">
         <SelectValue placeholder="Select a model" />
       </SelectTrigger>
       <SelectContent>

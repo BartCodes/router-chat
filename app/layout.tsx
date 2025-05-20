@@ -35,7 +35,7 @@ export default function RootLayout({
         <SidebarProvider>
           <ChatProvider>
             <AppSidebar />
-            <main className="w-full h-screen overflow-hidden">
+            <main className="w-full h-[100dvh]">
               <div className="relative flex flex-col h-full">
                 <SidebarTrigger className="absolute top-4 left-4 z-10 hover:cursor-pointer"/>
                 {children}
