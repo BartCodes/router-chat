@@ -3,6 +3,9 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import type { Message } from "@/lib/types";
+import { UserMessageBubble } from "./user-message-bubble";
+import { AIMessageBubble } from "./ai-message-bubble";
+import { useEffect, useRef } from "react";
 
 interface ChatAreaProps {
   messages: Message[];
@@ -15,10 +18,18 @@ export function ChatArea({ messages }: ChatAreaProps) {
   // Check if we're currently streaming (last message is from AI with empty content)
   const isStreaming = messages.length > 0 && messages[messages.length - 1].role === 'ai' && messages[messages.length - 1].content === '';
 
+  // Create a ref for the message container
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
-    <div className="flex-1 relative bg-content1">
-      <ScrollArea className="h-full w-full">
-        <div className="flex flex-col space-y-4 p-4">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <ScrollArea className="flex-1 h-full">
+        <div className="flex flex-col space-y-4 p-4 min-h-full">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-muted-foreground">Start a new conversation...</p>
@@ -26,24 +37,11 @@ export function ChatArea({ messages }: ChatAreaProps) {
           ) : (
             <>
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-2.5 ${
-                    message.role === 'user' ? 'ml-auto' : 'mr-auto'
-                  } max-w-[80%]`}
-                >
-                  <div className="flex flex-col gap-1">
-                    <div 
-                      className={`rounded-lg px-4 py-2 text-foreground border ${
-                        message.role === 'user' 
-                          ? 'bg-primary/10 border-primary/20' 
-                          : 'bg-content2 border-default-200'
-                      }`}
-                    >
-                      <p>{message.content}</p>
-                    </div>
-                  </div>
-                </div>
+                message.role === 'user' ? (
+                  <UserMessageBubble key={message.id} message={message} />
+                ) : (
+                  <AIMessageBubble key={message.id} message={message} />
+                )
               ))}
               {(isWaitingForAI || isStreaming) && (
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -53,6 +51,7 @@ export function ChatArea({ messages }: ChatAreaProps) {
                   </span>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </>
           )}
         </div>

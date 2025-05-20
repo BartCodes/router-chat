@@ -136,7 +136,7 @@ export function MessageInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-4 border-t border-default-200 bg-content1 shrink-0">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-4 border-t border-default-200 bg-content1 shrink-0 z-10">
       <div className="flex gap-2">
         <Textarea
           value={messageContent}

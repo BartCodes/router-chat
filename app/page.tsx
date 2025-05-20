@@ -95,14 +95,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full pt-10">
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-default-200">
-          <ModelSelector 
-            currentModelId={currentModelId}
-            setCurrentModelId={setCurrentModelId} 
-          />
-        </div>
-        
+      <div className="flex items-center justify-between p-4 border-b border-default-200">
+        <ModelSelector 
+          currentModelId={currentModelId}
+          setCurrentModelId={setCurrentModelId} 
+        />
+      </div>
+      
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         <div className="flex-1 min-h-0">
           <ChatArea 
             messages={messages}
