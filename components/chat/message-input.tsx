@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import type { Message, Conversation } from "@/lib/types";
-import { processUserMessage } from "@/app/actions";
 import { useChat } from "@/components/chat-provider";
 
 interface MessageInputProps {
@@ -104,20 +103,27 @@ export function MessageInput({
 
       const conversationHistoryForAPI = [...activeConversation.messages, userMessage];
       
-      const result = await processUserMessage(conversationHistoryForAPI, currentModelId);
-
       const aiMessageId = uuidv4();
-
-      if (result instanceof ReadableStream) {
-        await processStreamingResponse(result, aiMessageId, currentModelId);
-      } else if (!result.success) {
-        console.error('Error from AI:', result.error);
-        const errorMessage = result.error || "Unknown error from AI";
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationHistory: conversationHistoryForAPI,
+          modelId: currentModelId,
+        }),
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        const errorMessage = errData.error || 'Failed to get AI response';
+        console.error('Error from AI:', errorMessage);
         toast.error(`AI Error: ${errorMessage}`);
         onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
         onAiResponseComplete(aiMessageId);
+      } else if (!response.body) {
+        toast.error('No response body for AI streaming');
+        onAiResponseComplete(aiMessageId);
       } else {
-        console.warn("Received non-streaming success, but streaming was expected.");
+        await processStreamingResponse(response.body, aiMessageId, currentModelId);
       }
     } catch (error) {
       console.error('Error processing message:', error);
