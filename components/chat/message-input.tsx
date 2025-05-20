@@ -1,6 +1,5 @@
 "use client";
 
-import { SendIcon } from "lucide-react";
 import * as React from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
@@ -135,7 +134,7 @@ export function MessageInput({
   const placeholders = [
     "What's the meaning of life?",
     "Explain quantum computing in simple terms.",
-    "What are the best restaurants near me?",
+    "What are the best restaurants in New York City?",
     "Tell me a joke.",
     "How does the stock market work?",
   ];
