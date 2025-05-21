@@ -120,3 +120,100 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Streaming text animation styles */
+.streaming-text {
+  position: relative;
+  overflow: hidden;
+}
+
+.streaming-text p:last-of-type::after {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 1em;
+  background-color: hsl(var(--primary));
+  vertical-align: text-bottom;
+  margin-left: 0.2em;
+  opacity: 0.7;
+  animation: blink 1s infinite;
+  border-radius: 1px;
+  transform-origin: bottom;
+  animation: blink-cursor 1.2s infinite;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { 
+    opacity: 0; 
+    transform: scaleY(0.7);
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scaleY(1);
+  }
+}
+
+/* Fade-in animation for new markdown elements */
+.streaming-text * {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+/* Styles for code blocks in markdown */
+.streaming-text pre {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  border: 1px solid hsl(var(--border) / 30%);
+}
+
+.streaming-text pre:hover {
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 10%);
+}
+
+/* Enhance links in streaming text */
+.streaming-text a {
+  position: relative;
+  color: hsl(var(--primary));
+  text-decoration: none;
+  background-image: linear-gradient(0deg, currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  transition: background-size 0.3s ease;
+}
+
+.streaming-text a:hover {
+  background-size: 100% 2px;
+}
+
+/* Enhance lists in streaming text */
+.streaming-text ul, 
+.streaming-text ol {
+  transition: padding-left 0.3s ease;
+}
+
+.streaming-text ul:hover, 
+.streaming-text ol:hover {
+  padding-left: 0.5rem;
+}
+
+/* User message styles to complement streaming text */
+.user-message {
+  position: relative;
+  overflow: hidden;
+}
+
+.user-message * {
+  transition: transform 0.2s ease;
+}
+
+.user-message:hover * {
+  transform: scale(1.01);
+}
