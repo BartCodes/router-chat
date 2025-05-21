@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/types";
-import { motion, useMotionValue, useTransform, animate, useAnimate } from "motion/react";
+import { motion, useMotionValue, useTransform, useAnimate } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface AIMessageBubbleProps {
   message: Message;
@@ -11,7 +11,6 @@ interface AIMessageBubbleProps {
 }
 
 export function AIMessageBubble({ message, className }: AIMessageBubbleProps) {
-  const [isStreaming, setIsStreaming] = useState(false);
   const prevContentLength = useRef(message.content.length);
   const [scope, animate] = useAnimate();
   
@@ -38,7 +37,6 @@ export function AIMessageBubble({ message, className }: AIMessageBubbleProps) {
     
     // Determine if we're streaming (content changed and exists)
     const streaming = contentChanged && contentExists;
-    setIsStreaming(streaming);
     
     if (streaming) {
       // Animate glow effect when new content arrives
