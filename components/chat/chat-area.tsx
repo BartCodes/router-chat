@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence, animate } from "motion/react";
 import { cn } from "@/lib/utils";
 import { TracingBeam } from "@/components/ui/tracing-beam";
+import { ContainerTextFlip } from "@/components/ui/container-text-flip";
 
 interface ChatAreaProps {
   messages: Message[];
@@ -191,7 +192,14 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
               >
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">Start a new conversation...</p>
+                    <div className="text-2xl md:text-4xl text-muted-foreground flex items-baseline">
+                      <span>Start a new&nbsp;</span>
+                      <div className="w-24 md:w-60">
+                        <ContainerTextFlip
+                          words={["conversation", "journey", "lesson", "adventure"]}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <>
