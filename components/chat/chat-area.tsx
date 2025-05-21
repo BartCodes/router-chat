@@ -19,7 +19,8 @@ const MAX_SCROLL_SPEED_PPS = 2000;
 const MIN_SCROLL_DURATION_S = 0.5;
 const MAX_SCROLL_DURATION_S = 2;
 const SCROLL_EASING = "easeInOut";
-const STREAMING_AUTOSCROLL_DURATION_S = 0.1;
+const SCROLL_MARGIN_PX = 30;
+const NEAR_BOTTOM_THRESHOLD_PX = 200;
 
 const calculateScrollDuration = (distance: number): number => {
   if (distance === 0) return MIN_SCROLL_DURATION_S;
@@ -44,8 +45,8 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     const viewport = scrollAreaViewportRef.current;
     if (viewport) {
       const { scrollTop, scrollHeight, clientHeight } = viewport;
-      setCanScrollUp(scrollTop > 30);
-      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 30);
+      setCanScrollUp(scrollTop > SCROLL_MARGIN_PX);
+      setCanScrollDown(scrollTop < scrollHeight - clientHeight - SCROLL_MARGIN_PX);
     }
   }, []);
 
@@ -134,52 +135,30 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
   useEffect(() => {
     const viewport = scrollAreaViewportRef.current;
     const messagesContainer = messagesContainerRef.current;
+    if (!viewport || !messagesContainer) return;
 
-    if (!viewport || !messagesContainer) return () => {}; // No-op cleanup if refs not ready
+    const onScroll = () => checkScrollability();
+    viewport.addEventListener('scroll', onScroll);
 
-    const handleScroll = () => checkScrollability();
-    viewport.addEventListener('scroll', handleScroll);
-
-    const resizeObserver = new ResizeObserver(() => {
-      const currentViewport = scrollAreaViewportRef.current;
-      if (currentViewport) {
-        const isNearBottom = currentViewport.scrollTop + currentViewport.clientHeight >= currentViewport.scrollHeight - 30;
-        if (isNearBottom) {
-          const targetScrollTop = Math.max(0, currentViewport.scrollHeight - currentViewport.clientHeight);
-          const distance = targetScrollTop - currentViewport.scrollTop;
-          
-          if (distance > 0) {
-            animate(
-              currentViewport.scrollTop,
-              targetScrollTop,
-              {
-                duration: STREAMING_AUTOSCROLL_DURATION_S,
-                ease: SCROLL_EASING,
-                onUpdate: (latest) => {
-                  if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
-                },
-              }
-            );
-            const resizeScrollAnimationDurationMs = STREAMING_AUTOSCROLL_DURATION_S * 1000;
-            setTimeout(checkScrollability, resizeScrollAnimationDurationMs + 50);
-          } else {
-            setTimeout(checkScrollability, 50);
-          }
-        } else {
-          setTimeout(checkScrollability, 150);
-        }
-      } else {
-        setTimeout(checkScrollability, 150);
+    const onResize = () => {
+      const vp = scrollAreaViewportRef.current;
+      if (!vp) return;
+      const nearBottom = vp.scrollTop + vp.clientHeight >= vp.scrollHeight - NEAR_BOTTOM_THRESHOLD_PX;
+      if (nearBottom) {
+        const bottom = vp.scrollHeight - vp.clientHeight;
+        if (bottom > vp.scrollTop) vp.scrollTop = bottom;
       }
-    });
+      checkScrollability();
+    };
+
+    const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(viewport);
     resizeObserver.observe(messagesContainer);
 
-    // Initial check
     checkScrollability();
 
     return () => {
-      viewport.removeEventListener('scroll', handleScroll);
+      viewport.removeEventListener('scroll', onScroll);
       resizeObserver.disconnect();
     };
   }, [checkScrollability]);
