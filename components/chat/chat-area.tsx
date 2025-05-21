@@ -31,7 +31,6 @@ const calculateScrollDuration = (distance: number): number => {
 
 export function ChatArea({ messages, conversationId }: ChatAreaProps) {
   const isWaitingForAI = messages.length > 0 && messages[messages.length - 1].role === 'user';
-  
   const isStreaming = messages.length > 0 && messages[messages.length - 1].role === 'ai' && messages[messages.length - 1].content === '';
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -51,128 +50,90 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     }
   }, []);
 
-  // Scroll to bottom whenever messages change, after animations
   useEffect(() => {
     const viewport = scrollAreaViewportRef.current;
-    if (viewport) {
-      const messageAnimationDuration = 200; 
-      const scrollStartDelay = messageAnimationDuration + 150; 
+    if (!viewport) return;
+    const messageAnimationDuration = 200;
+    const scrollStartDelay = messageAnimationDuration + 150;
 
-      const scrollTimer = setTimeout(() => {
-        if (scrollAreaViewportRef.current) {
-          const currentVp = scrollAreaViewportRef.current;
-          const targetScrollTop = Math.max(0, currentVp.scrollHeight - currentVp.clientHeight);
-          const distance = targetScrollTop - currentVp.scrollTop;
-
-          if (distance > 0 || (messages.length > 0 && currentVp.scrollTop === 0 && targetScrollTop === 0)) {
-            const dynamicDuration = calculateScrollDuration(distance);
-            animate(
-              currentVp.scrollTop,
-              targetScrollTop,
-              {
-                duration: dynamicDuration,
-                ease: SCROLL_EASING,
-                onUpdate: (latest) => {
-                  if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
-                },
-              }
-            );
-          }
-        }
-      }, scrollStartDelay);
-
-      // Calculate scrollabilityCheckDelay based on potential scroll
-      // This is an estimation as we don't know the exact distance until the scrollTimer runs
-      // We'll use a general 'average' or max duration for this check, or accept it might be slightly off.
-      // For simplicity, let's base it on MAX_SCROLL_DURATION_S for now if a scroll is likely.
-      const placeholderScrollDistance = viewport.scrollHeight > viewport.clientHeight ? viewport.scrollHeight : 200; // Estimate some distance
-      const estimatedDynamicDuration = calculateScrollDuration(placeholderScrollDistance);
-      const scrollAnimationDurationMs = estimatedDynamicDuration * 1000;
-      const scrollabilityCheckDelay = scrollStartDelay + scrollAnimationDurationMs + 50;
-
-      const scrollabilityTimer = setTimeout(() => {
-        checkScrollability();
-      }, scrollabilityCheckDelay);
-
-      return () => {
-        clearTimeout(scrollTimer);
-        clearTimeout(scrollabilityTimer);
-      };
-    }
-    return () => {};
-  }, [messages, checkScrollability]);
-
-  const handleScrollIndicatorClick = useCallback((direction: 'up' | 'down') => {
-    const viewport = scrollAreaViewportRef.current;
-    if (viewport) {
-      let targetScrollTop = 0;
-      let distance = viewport.scrollTop;
-
-      if (direction === 'down') {
-        targetScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
-        distance = targetScrollTop - viewport.scrollTop;
-      }
-      
-      const dynamicDuration = calculateScrollDuration(distance);
-
-      animate(
-        viewport.scrollTop,
-        targetScrollTop,
-        {
+    const scrollTimer = setTimeout(() => {
+      const vp = scrollAreaViewportRef.current;
+      if (!vp) return;
+      const targetScrollTop = Math.max(0, vp.scrollHeight - vp.clientHeight);
+      const distance = targetScrollTop - vp.scrollTop;
+      if (distance > 0 || (messages.length > 0 && vp.scrollTop === 0 && targetScrollTop === 0)) {
+        const dynamicDuration = calculateScrollDuration(distance);
+        animate(vp.scrollTop, targetScrollTop, {
           duration: dynamicDuration,
           ease: SCROLL_EASING,
           onUpdate: (latest) => {
             if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
           },
-        }
-      );
-      
-      const scrollAnimationDurationMs = dynamicDuration * 1000;
-      setTimeout(checkScrollability, scrollAnimationDurationMs + 50);
-    }
-  }, [checkScrollability]);
-
-  // Setup event listeners and observers
-  useEffect(() => {
-    const viewport = scrollAreaViewportRef.current;
-    const messagesContainer = messagesContainerRef.current;
-    if (!viewport || !messagesContainer) return;
-
-    const onScroll = () => checkScrollability();
-    viewport.addEventListener('scroll', onScroll);
-
-    const onResize = () => {
-      const vp = scrollAreaViewportRef.current;
-      if (!vp) return;
-      const nearBottom = vp.scrollTop + vp.clientHeight >= vp.scrollHeight - NEAR_BOTTOM_THRESHOLD_PIXELS;
-      if (nearBottom) {
-        const bottom = vp.scrollHeight - vp.clientHeight;
-        if (bottom > vp.scrollTop) vp.scrollTop = bottom;
+        });
       }
-      checkScrollability();
-    };
+    }, scrollStartDelay);
 
-    const resizeObserver = new ResizeObserver(onResize);
-    resizeObserver.observe(viewport);
-    resizeObserver.observe(messagesContainer);
-
-    checkScrollability();
+    const placeholderDistance = viewport.scrollHeight > viewport.clientHeight ? viewport.scrollHeight : 200;
+    const estimatedDuration = calculateScrollDuration(placeholderDistance);
+    const totalDelay = scrollStartDelay + estimatedDuration * 1000 + 50;
+    const scrollabilityTimer = setTimeout(checkScrollability, totalDelay);
 
     return () => {
-      viewport.removeEventListener('scroll', onScroll);
-      resizeObserver.disconnect();
+      clearTimeout(scrollTimer);
+      clearTimeout(scrollabilityTimer);
     };
+  }, [messages, checkScrollability]);
+
+  const autoScrollEnabledRef = useRef(true);
+
+  const handleScrollIndicatorClick = useCallback((direction: 'up' | 'down') => {
+    const viewport = scrollAreaViewportRef.current;
+    if (!viewport) return;
+    const target = direction === 'down'
+      ? Math.max(0, viewport.scrollHeight - viewport.clientHeight)
+      : 0;
+    const distance = target - viewport.scrollTop;
+    const duration = calculateScrollDuration(distance);
+    animate(viewport.scrollTop, target, {
+      duration,
+      ease: SCROLL_EASING,
+      onUpdate: (latest) => {
+        if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
+      },
+    });
+    setTimeout(checkScrollability, duration * 1000 + 50);
   }, [checkScrollability]);
 
-  // Create a key for the conversation to trigger animations when switching
+  useEffect(() => {
+    const viewport = scrollAreaViewportRef.current;
+    if (!viewport) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === 'ai' && autoScrollEnabledRef.current) {
+      viewport.scrollTop = viewport.scrollHeight - viewport.clientHeight;
+      checkScrollability();
+    }
+  }, [messages, checkScrollability]);
+
+  useEffect(() => {
+    const viewport = scrollAreaViewportRef.current;
+    if (!viewport) return;
+    const onScroll = () => {
+      checkScrollability();
+      const { scrollTop, scrollHeight, clientHeight } = viewport;
+      autoScrollEnabledRef.current = (scrollTop + clientHeight >= scrollHeight - SCROLL_MARGIN_PX);
+    };
+    viewport.addEventListener('scroll', onScroll);
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
+    autoScrollEnabledRef.current = (scrollTop + clientHeight >= scrollHeight - SCROLL_MARGIN_PX);
+    checkScrollability();
+    return () => viewport.removeEventListener('scroll', onScroll);
+  }, [checkScrollability]);
+
   const conversationKey = conversationId || "empty-conversation";
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden relative" ref={scrollAreaRef}>
-      <ScrollArea 
-        className="flex-1 h-full" 
-        viewportRef={scrollAreaViewportRef}
-      >
+      <ScrollArea className="flex-1 h-full" viewportRef={scrollAreaViewportRef}>
         <AnimatePresence mode="wait">
           <motion.div
             key={conversationKey}
@@ -181,22 +142,14 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <TracingBeam 
-              className="px-6" 
-              scrollableContainerRef={scrollAreaViewportRef}
-            >
-              <div
-                ref={messagesContainerRef}
-                className="flex flex-col space-y-4 p-4 min-h-full"
-              >
+            <TracingBeam className="px-6" scrollableContainerRef={scrollAreaViewportRef}>
+              <div ref={messagesContainerRef} className="flex flex-col space-y-4 p-4 min-h-full">
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-muted-foreground flex items-baseline">
                       <span>Start a new&nbsp;</span>
                       <div className="w-24 md:w-60">
-                        <ContainerTextFlip
-                          words={["conversation", "journey", "lesson", "adventure"]}
-                        />
+                        <ContainerTextFlip words={["conversation", "journey", "lesson", "adventure"]} />
                       </div>
                     </div>
                   </div>
@@ -207,16 +160,10 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
                       return (
                         <motion.div
                           key={message.id}
-                          className={cn(
-                            "flex",
-                            isUser ? "justify-end" : "justify-start"
-                          )}
+                          className={cn("flex", isUser ? "justify-end" : "justify-start")}
                           initial={{ opacity: 0, y: 15 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ 
-                            duration: 0.2, 
-                            ease: "easeOut" 
-                          }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
                         >
                           {isUser ? (
                             <UserMessageBubble message={message} />
@@ -227,7 +174,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
                       );
                     })}
                     {(isWaitingForAI || isStreaming) && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-2 text-muted-foreground"

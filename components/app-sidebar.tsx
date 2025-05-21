@@ -88,10 +88,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-default-200 bg-content1">
       <SidebarHeader className="p-2 border-b border-default-200">
-        <Button 
-          variant="outline" 
-          className="hover:cursor-pointer w-full justify-start gap-2 bg-content2 hover:bg-content3 hover:text-primary border-default-300 text-foreground" 
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2 bg-content2 hover:bg-content3 hover:text-primary border-default-300 text-foreground"
           onClick={() => handleNewChat()}
+          disabled={isAiResponding}
+          title={isAiResponding ? 'Please wait for AI response to finish' : undefined}
         >
           <PlusCircle size={18} />
           New Chat
