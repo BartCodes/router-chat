@@ -111,7 +111,6 @@ export function MessageInput({
         const errorMessage = errData.error || 'Failed to get AI response';
         console.error('Error from AI:', errorMessage);
         toast.error(`AI Error: ${errorMessage}`);
-        onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
         onAiResponseComplete(aiMessageId);
       } else if (!response.body) {
         toast.error('No response body for AI streaming');
@@ -123,7 +122,6 @@ export function MessageInput({
       console.error('Error processing message:', error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during submission.";
       toast.error(`Error: ${errorMessage}`);
-      onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
     } finally {
       setIsAiResponding(false);
     }
@@ -153,7 +151,6 @@ export function MessageInput({
       const aiMessageId = uuidv4();
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during submission.";
       toast.error(`Error: ${errorMessage}`);
-      onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
       onAiResponseComplete(aiMessageId);
     }
   };

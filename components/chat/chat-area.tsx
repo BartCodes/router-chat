@@ -10,6 +10,7 @@ import { motion, AnimatePresence, animate } from "motion/react";
 import { cn } from "@/lib/utils";
 import { TracingBeam } from "@/components/ui/tracing-beam";
 import { ContainerTextFlip } from "@/components/ui/container-text-flip";
+import { useChat } from "@/components/chat-provider";
 
 interface ChatAreaProps {
   messages: Message[];
@@ -29,7 +30,8 @@ const calculateScrollDuration = (distance: number): number => {
 };
 
 export function ChatArea({ messages, conversationId }: ChatAreaProps) {
-  const isWaitingForAI = messages.length > 0 && messages[messages.length - 1].role === 'user';
+  const { isAiResponding } = useChat();
+  const isWaitingForAI = isAiResponding && messages.length > 0 && messages[messages.length - 1].role === 'user';
   const isStreaming = messages.length > 0 && messages[messages.length - 1].role === 'ai' && messages[messages.length - 1].content === '';
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
