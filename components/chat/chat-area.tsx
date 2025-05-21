@@ -6,7 +6,7 @@ import type { Message } from "@/lib/types";
 import { UserMessageBubble } from "./user-message-bubble";
 import { AIMessageBubble } from "./ai-message-bubble";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, animate } from "motion/react";
 import { cn } from "@/lib/utils";
 import { TracingBeam } from "@/components/ui/tracing-beam";
 
@@ -14,6 +14,17 @@ interface ChatAreaProps {
   messages: Message[];
   conversationId?: string;
 }
+
+const MAX_SCROLL_SPEED_PPS = 2000; // Pixels per second
+const MIN_SCROLL_DURATION_S = 0.5;  // Minimum scroll duration in seconds
+const MAX_SCROLL_DURATION_S = 2;   // Maximum scroll duration in seconds
+const SCROLL_EASING = "easeInOut";
+
+const calculateScrollDuration = (distance: number): number => {
+  if (distance === 0) return MIN_SCROLL_DURATION_S;
+  const durationBasedOnSpeed = Math.abs(distance) / MAX_SCROLL_SPEED_PPS;
+  return Math.max(MIN_SCROLL_DURATION_S, Math.min(durationBasedOnSpeed, MAX_SCROLL_DURATION_S));
+};
 
 export function ChatArea({ messages, conversationId }: ChatAreaProps) {
   const isWaitingForAI = messages.length > 0 && messages[messages.length - 1].role === 'user';
@@ -32,65 +43,136 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     const viewport = scrollAreaViewportRef.current;
     if (viewport) {
       const { scrollTop, scrollHeight, clientHeight } = viewport;
-      setCanScrollUp(scrollTop > 1); 
-      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 1);
+      setCanScrollUp(scrollTop > 30); 
+      setCanScrollDown(scrollTop < scrollHeight - clientHeight - 30);
     }
   }, []);
 
-  // Scroll to bottom whenever messages change
+  // Scroll to bottom whenever messages change, after animations
   useEffect(() => {
     const viewport = scrollAreaViewportRef.current;
     if (viewport) {
-      viewport.scrollTop = viewport.scrollHeight;
+      const messageAnimationDuration = 200; 
+      const scrollStartDelay = messageAnimationDuration + 150; 
+
+      const scrollTimer = setTimeout(() => {
+        if (scrollAreaViewportRef.current) {
+          const currentVp = scrollAreaViewportRef.current;
+          const targetScrollTop = Math.max(0, currentVp.scrollHeight - currentVp.clientHeight);
+          const distance = targetScrollTop - currentVp.scrollTop;
+
+          if (distance > 0 || (messages.length > 0 && currentVp.scrollTop === 0 && targetScrollTop === 0)) {
+            const dynamicDuration = calculateScrollDuration(distance);
+            animate(
+              currentVp.scrollTop,
+              targetScrollTop,
+              {
+                duration: dynamicDuration,
+                ease: SCROLL_EASING,
+                onUpdate: (latest) => {
+                  if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
+                },
+              }
+            );
+          }
+        }
+      }, scrollStartDelay);
+
+      // Calculate scrollabilityCheckDelay based on potential scroll
+      // This is an estimation as we don't know the exact distance until the scrollTimer runs
+      // We'll use a general 'average' or max duration for this check, or accept it might be slightly off.
+      // For simplicity, let's base it on MAX_SCROLL_DURATION_S for now if a scroll is likely.
+      const placeholderScrollDistance = viewport.scrollHeight > viewport.clientHeight ? viewport.scrollHeight : 200; // Estimate some distance
+      const estimatedDynamicDuration = calculateScrollDuration(placeholderScrollDistance);
+      const scrollAnimationDurationMs = estimatedDynamicDuration * 1000;
+      const scrollabilityCheckDelay = scrollStartDelay + scrollAnimationDurationMs + 50;
+
+      const scrollabilityTimer = setTimeout(() => {
+        checkScrollability();
+      }, scrollabilityCheckDelay);
+
+      return () => {
+        clearTimeout(scrollTimer);
+        clearTimeout(scrollabilityTimer);
+      };
     }
-
-    // Check scrollability after a short delay to allow the DOM to settle.
-    const scrollabilityTimer = setTimeout(() => {
-      checkScrollability();
-    }, 200); // Delay for checkScrollability, not the scroll itself.
-
-    return () => clearTimeout(scrollabilityTimer);
-  }, [messages, checkScrollability]); // Effect primarily driven by messages
+    return () => {};
+  }, [messages, checkScrollability]);
 
   const handleScrollIndicatorClick = useCallback((direction: 'up' | 'down') => {
-    const viewport = scrollAreaViewportRef.current; // Use direct ref
+    const viewport = scrollAreaViewportRef.current;
     if (viewport) {
-      if (direction === 'up') {
-        viewport.scrollTo({
-          top: 0,
-          behavior: 'smooth',
-        });
-      } else {
-        viewport.scrollTo({
-          top: viewport.scrollHeight,
-          behavior: 'smooth',
-        });
+      let targetScrollTop = 0;
+      let distance = viewport.scrollTop; // For 'up'
+
+      if (direction === 'down') {
+        targetScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+        distance = targetScrollTop - viewport.scrollTop;
       }
-      // Re-check scrollability after manual scroll, giving time for smooth scroll to complete
-      setTimeout(checkScrollability, 300);
+      
+      const dynamicDuration = calculateScrollDuration(distance);
+
+      animate(
+        viewport.scrollTop,
+        targetScrollTop,
+        {
+          duration: dynamicDuration,
+          ease: SCROLL_EASING,
+          onUpdate: (latest) => {
+            if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
+          },
+        }
+      );
+      
+      const scrollAnimationDurationMs = dynamicDuration * 1000;
+      setTimeout(checkScrollability, scrollAnimationDurationMs + 50);
     }
   }, [checkScrollability]);
 
   // Setup event listeners and observers
   useEffect(() => {
-    const viewport = scrollAreaViewportRef.current; // Use direct ref
+    const viewport = scrollAreaViewportRef.current;
     const messagesContainer = messagesContainerRef.current;
 
-    if (!viewport || !messagesContainer) return;
+    if (!viewport || !messagesContainer) return () => {}; // No-op cleanup if refs not ready
 
     const handleScroll = () => checkScrollability();
     viewport.addEventListener('scroll', handleScroll);
 
     const resizeObserver = new ResizeObserver(() => {
-      if (viewport) {
-        // If near bottom, scroll to bottom on resize (e.g. new streamed content)
-        // This prevents auto-scrolling if the user has scrolled up significantly.
-        const isNearBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 30; // 30px tolerance
+      const currentViewport = scrollAreaViewportRef.current;
+      if (currentViewport) {
+        const isNearBottom = currentViewport.scrollTop + currentViewport.clientHeight >= currentViewport.scrollHeight - 30;
         if (isNearBottom) {
-          viewport.scrollTop = viewport.scrollHeight;
+          const targetScrollTop = Math.max(0, currentViewport.scrollHeight - currentViewport.clientHeight);
+          const distance = targetScrollTop - currentViewport.scrollTop;
+          
+          if (distance > 0) { 
+            const dynamicDuration = calculateScrollDuration(distance);
+            animate(
+              currentViewport.scrollTop,
+              targetScrollTop,
+              {
+                duration: dynamicDuration,
+                ease: SCROLL_EASING,
+                onUpdate: (latest) => {
+                  if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
+                },
+              }
+            );
+            const resizeScrollAnimationDurationMs = dynamicDuration * 1000;
+            setTimeout(checkScrollability, resizeScrollAnimationDurationMs + 50);
+          } else {
+            // If no scroll needed, or distance is 0 or negative, check scrollability sooner
+            setTimeout(checkScrollability, 50); 
+          }
+        } else {
+           // If not near bottom, still check scrollability after a standard delay
+           setTimeout(checkScrollability, 150);
         }
+      } else {
+        setTimeout(checkScrollability, 150); 
       }
-      checkScrollability(); // Always update scroll indicators
     });
     resizeObserver.observe(viewport);
     resizeObserver.observe(messagesContainer);
@@ -123,7 +205,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
           >
             <TracingBeam 
               className="px-6" 
-              scrollableContainerRef={scrollAreaViewportRef} // Pass viewport ref to TracingBeam
+              scrollableContainerRef={scrollAreaViewportRef}
             >
               <div
                 ref={messagesContainerRef}
