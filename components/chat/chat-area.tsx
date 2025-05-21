@@ -192,7 +192,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
               >
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-2xl md:text-4xl text-muted-foreground flex items-baseline">
+                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-muted-foreground flex items-baseline">
                       <span>Start a new&nbsp;</span>
                       <div className="w-24 md:w-60">
                         <ContainerTextFlip
