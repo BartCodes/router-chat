@@ -1,6 +1,6 @@
 import React from "react";
 import "@/app/globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from '@vercel/analytics/next';
 import { Geist, Geist_Mono } from "next/font/google";
@@ -22,11 +22,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "RouterChat",
   description: "RouterChat is a web-based AI chatbot interface. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models.",
-  viewport: {
-    width: "device-width",
-    initialScale: 1.0,
-    interactiveWidget: "resizes-content",
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

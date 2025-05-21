@@ -21,7 +21,7 @@ const MIN_SCROLL_DURATION_S = 0.5;
 const MAX_SCROLL_DURATION_S = 2;
 const SCROLL_EASING = "easeInOut";
 const SCROLL_MARGIN_PX = 30;
-const NEAR_BOTTOM_THRESHOLD_FRACTION = 0.5;
+const NEAR_BOTTOM_THRESHOLD_PIXELS = 2000;
 
 const calculateScrollDuration = (distance: number): number => {
   if (distance === 0) return MIN_SCROLL_DURATION_S;
@@ -144,8 +144,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     const onResize = () => {
       const vp = scrollAreaViewportRef.current;
       if (!vp) return;
-      const nearBottomThreshold = vp.clientHeight * NEAR_BOTTOM_THRESHOLD_FRACTION;
-      const nearBottom = vp.scrollTop + vp.clientHeight >= vp.scrollHeight - nearBottomThreshold;
+      const nearBottom = vp.scrollTop + vp.clientHeight >= vp.scrollHeight - NEAR_BOTTOM_THRESHOLD_PIXELS;
       if (nearBottom) {
         const bottom = vp.scrollHeight - vp.clientHeight;
         if (bottom > vp.scrollTop) vp.scrollTop = bottom;
