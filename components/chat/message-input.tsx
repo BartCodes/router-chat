@@ -14,6 +14,7 @@ interface MessageInputProps {
   onAiMessageUpdate: (aiMessageId: string, chunk: string, modelId?: string) => void;
   onAiResponseComplete: (aiMessageId: string) => void;
   currentModelId: string;
+  isAiResponding: boolean;
 }
 
 export function MessageInput({ 
@@ -22,9 +23,10 @@ export function MessageInput({
   onAiMessageUpdate,
   onAiResponseComplete,
   currentModelId,
+  isAiResponding,
 }: MessageInputProps) {
   const [messageContent, setMessageContent] = React.useState("");
-  const { isAiResponding, setIsAiResponding } = useChat();
+  const { isAiResponding: chatIsAiResponding, setIsAiResponding } = useChat();
 
   const createUserMessage = (content: string): Message => ({
     id: uuidv4(),
@@ -92,7 +94,7 @@ export function MessageInput({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const trimmedMessage = messageContent.trim();
-    if (!trimmedMessage || isAiResponding || !activeConversation) return;
+    if (!trimmedMessage || chatIsAiResponding || !activeConversation) return;
 
     setIsAiResponding(true);
     
@@ -170,6 +172,7 @@ export function MessageInput({
         onChange={handleChange}
         onSubmit={handleSubmit}
         spellCheck={false}
+        disabled={isAiResponding}
       />
     </div>
   );

@@ -16,6 +16,7 @@ export default function Home() {
     activeConversation,
     setActiveConversation,
     conversations,
+    isAiResponding,
   } = useChat();
 
   const handleUserMessageSend = (newUserMessage: Message) => {
@@ -116,6 +117,7 @@ export default function Home() {
           onAiMessageUpdate={handleAiMessageUpdate}
           onAiResponseComplete={handleAiResponseComplete}
           currentModelId={currentModelId}
+          isAiResponding={isAiResponding}
         />
       </div>
     </div>
