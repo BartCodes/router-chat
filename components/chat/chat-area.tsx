@@ -21,7 +21,6 @@ const MIN_SCROLL_DURATION_S = 0.5;
 const MAX_SCROLL_DURATION_S = 2;
 const SCROLL_EASING = "easeInOut";
 const SCROLL_MARGIN_PX = 30;
-const NEAR_BOTTOM_THRESHOLD_PIXELS = 2000;
 
 const calculateScrollDuration = (distance: number): number => {
   if (distance === 0) return MIN_SCROLL_DURATION_S;
