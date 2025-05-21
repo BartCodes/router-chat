@@ -3,7 +3,6 @@ export interface OpenRouterModel {
   name: string;
 }
 
-// List of supported free models
 export const SUPPORTED_MODELS: OpenRouterModel[] = [
   {
     id: 'meta-llama/llama-3.2-3b-instruct:free',

@@ -143,6 +143,20 @@ export function MessageInput({
     "What are the best restaurants in New York City?",
     "Tell me a joke.",
     "How does the stock market work?",
+    "Suggest some fun activities for a rainy day.",
+    "Summarize the plot of 'Pride and Prejudice'.",
+    "What are the benefits of meditation?",
+    "Give me a recipe for chocolate chip cookies.",
+    "Explain the concept of blockchain.",
+    "Write a short story about a talking cat.",
+    "What is the capital of France?",
+    "How to learn a new language effectively?",
+    "Recommend a good book to read.",
+    "Explain the difference between weather and climate.",
+    "How to make a perfect cup of coffee?",
+    "What are the main types of renewable energy?",
+    "Suggest a workout routine for beginners.",
+    "What is the history of the internet?",
   ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
