@@ -8,6 +8,8 @@ import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-van
 import type { Message, Conversation } from "@/lib/types";
 import { useChat } from "@/components/chat-provider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
+
 
 interface MessageInputProps {
   activeConversation: Conversation | null;
@@ -187,7 +189,10 @@ export function MessageInput({
       {isAiResponding ? (
         <div className="animate-pulse w-full relative max-w-xl mx-auto h-12 rounded-full flex items-center pl-4 sm:pl-10 pr-20 bg-gray-100 dark:bg-zinc-800">
           <Skeleton className="absolute inset-0 h-full w-full rounded-full" />
-          <span className="relative z-10 text-sm sm:text-base text-neutral-500 dark:text-zinc-500">AI is responding...</span>
+          <div className="flex items-center gap-2">
+            <Loader2 className="animate-spin z-10 text-sm sm:text-base text-neutral-500 dark:text-zinc-500 h-4 w-4" />
+            <span className="relative z-10 text-sm sm:text-base text-neutral-500 dark:text-zinc-500">AI is responding...</span>
+          </div>
         </div>
       ) : (
         <PlaceholdersAndVanishInput
