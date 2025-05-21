@@ -21,10 +21,12 @@ export function PlaceholdersAndVanishInput({
   placeholders,
   onChange,
   onSubmit,
+  spellCheck = true,
 }: {
   placeholders: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  spellCheck?: boolean;
 }) {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
 
@@ -214,6 +216,7 @@ export function PlaceholdersAndVanishInput({
         ref={inputRef}
         value={value}
         type="text"
+        spellCheck={spellCheck}
         className={cn(
           "w-full relative text-sm sm:text-base z-50 border-none dark:text-white bg-transparent text-black h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
           animating && "text-transparent dark:text-transparent"

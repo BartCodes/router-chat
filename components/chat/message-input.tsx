@@ -169,6 +169,7 @@ export function MessageInput({
         placeholders={placeholders}
         onChange={handleChange}
         onSubmit={handleSubmit}
+        spellCheck={false}
       />
     </div>
   );
