@@ -16,9 +16,10 @@ interface ChatAreaProps {
 }
 
 const MAX_SCROLL_SPEED_PPS = 2000; // Pixels per second
-const MIN_SCROLL_DURATION_S = 0.5;  // Minimum scroll duration in seconds
-const MAX_SCROLL_DURATION_S = 2;   // Maximum scroll duration in seconds
+const MIN_SCROLL_DURATION_S = 0.5;  // Minimum scroll duration in seconds (user adjusted)
+const MAX_SCROLL_DURATION_S = 2;   // Maximum scroll duration in seconds (user adjusted)
 const SCROLL_EASING = "easeInOut";
+const STREAMING_AUTOSCROLL_DURATION_S = 0.1; // Fast duration for streaming autoscroll
 
 const calculateScrollDuration = (distance: number): number => {
   if (distance === 0) return MIN_SCROLL_DURATION_S;
@@ -148,29 +149,31 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
           const distance = targetScrollTop - currentViewport.scrollTop;
           
           if (distance > 0) { 
-            const dynamicDuration = calculateScrollDuration(distance);
+            // Use a very fast scroll duration for streaming when near bottom
             animate(
               currentViewport.scrollTop,
               targetScrollTop,
               {
-                duration: dynamicDuration,
+                duration: STREAMING_AUTOSCROLL_DURATION_S, // Use fast duration here
                 ease: SCROLL_EASING,
                 onUpdate: (latest) => {
                   if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
                 },
               }
             );
-            const resizeScrollAnimationDurationMs = dynamicDuration * 1000;
+            const resizeScrollAnimationDurationMs = STREAMING_AUTOSCROLL_DURATION_S * 1000;
             setTimeout(checkScrollability, resizeScrollAnimationDurationMs + 50);
           } else {
-            // If no scroll needed, or distance is 0 or negative, check scrollability sooner
+            // If no scroll needed (already at bottom or scrolled up slightly within buffer but no positive distance to scroll)
             setTimeout(checkScrollability, 50); 
           }
         } else {
-           // If not near bottom, still check scrollability after a standard delay
+           // If not near bottom, user has scrolled up, don't auto-scroll.
+           // Just update scrollability indicators after a small delay.
            setTimeout(checkScrollability, 150);
         }
       } else {
+        // Fallback if viewport somehow becomes null
         setTimeout(checkScrollability, 150); 
       }
     });
