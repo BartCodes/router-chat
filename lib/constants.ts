@@ -15,10 +15,6 @@ export const SUPPORTED_MODELS: OpenRouterModel[] = [
   {
     id: 'deepseek/deepseek-chat-v3-0324:free',
     name: 'DeepSeek V3 0324',
-  },
-  {
-    id: 'deepseek/deepseek-r1:free',
-    name: 'DeepSeek R1',
   }
 ];
 

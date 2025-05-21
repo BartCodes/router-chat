@@ -15,11 +15,11 @@ interface ChatAreaProps {
   conversationId?: string;
 }
 
-const MAX_SCROLL_SPEED_PPS = 2000; // Pixels per second
-const MIN_SCROLL_DURATION_S = 0.5;  // Minimum scroll duration in seconds (user adjusted)
-const MAX_SCROLL_DURATION_S = 2;   // Maximum scroll duration in seconds (user adjusted)
+const MAX_SCROLL_SPEED_PPS = 2000;
+const MIN_SCROLL_DURATION_S = 0.5;
+const MAX_SCROLL_DURATION_S = 2;
 const SCROLL_EASING = "easeInOut";
-const STREAMING_AUTOSCROLL_DURATION_S = 0.1; // Fast duration for streaming autoscroll
+const STREAMING_AUTOSCROLL_DURATION_S = 0.1;
 
 const calculateScrollDuration = (distance: number): number => {
   if (distance === 0) return MIN_SCROLL_DURATION_S;
@@ -44,7 +44,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     const viewport = scrollAreaViewportRef.current;
     if (viewport) {
       const { scrollTop, scrollHeight, clientHeight } = viewport;
-      setCanScrollUp(scrollTop > 30); 
+      setCanScrollUp(scrollTop > 30);
       setCanScrollDown(scrollTop < scrollHeight - clientHeight - 30);
     }
   }, []);
@@ -104,7 +104,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     const viewport = scrollAreaViewportRef.current;
     if (viewport) {
       let targetScrollTop = 0;
-      let distance = viewport.scrollTop; // For 'up'
+      let distance = viewport.scrollTop;
 
       if (direction === 'down') {
         targetScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
@@ -148,13 +148,12 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
           const targetScrollTop = Math.max(0, currentViewport.scrollHeight - currentViewport.clientHeight);
           const distance = targetScrollTop - currentViewport.scrollTop;
           
-          if (distance > 0) { 
-            // Use a very fast scroll duration for streaming when near bottom
+          if (distance > 0) {
             animate(
               currentViewport.scrollTop,
               targetScrollTop,
               {
-                duration: STREAMING_AUTOSCROLL_DURATION_S, // Use fast duration here
+                duration: STREAMING_AUTOSCROLL_DURATION_S,
                 ease: SCROLL_EASING,
                 onUpdate: (latest) => {
                   if (scrollAreaViewportRef.current) scrollAreaViewportRef.current.scrollTop = latest;
@@ -164,17 +163,13 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
             const resizeScrollAnimationDurationMs = STREAMING_AUTOSCROLL_DURATION_S * 1000;
             setTimeout(checkScrollability, resizeScrollAnimationDurationMs + 50);
           } else {
-            // If no scroll needed (already at bottom or scrolled up slightly within buffer but no positive distance to scroll)
-            setTimeout(checkScrollability, 50); 
+            setTimeout(checkScrollability, 50);
           }
         } else {
-           // If not near bottom, user has scrolled up, don't auto-scroll.
-           // Just update scrollability indicators after a small delay.
-           setTimeout(checkScrollability, 150);
+          setTimeout(checkScrollability, 150);
         }
       } else {
-        // Fallback if viewport somehow becomes null
-        setTimeout(checkScrollability, 150); 
+        setTimeout(checkScrollability, 150);
       }
     });
     resizeObserver.observe(viewport);
@@ -196,7 +191,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
     <div className="flex-1 flex flex-col h-full overflow-hidden relative" ref={scrollAreaRef}>
       <ScrollArea 
         className="flex-1 h-full" 
-        viewportRef={scrollAreaViewportRef} // Pass ref to ScrollArea
+        viewportRef={scrollAreaViewportRef}
       >
         <AnimatePresence mode="wait">
           <motion.div

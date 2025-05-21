@@ -3,9 +3,8 @@
 import { ChatArea } from "@/components/chat/chat-area";
 import { MessageInput } from "@/components/chat/message-input";
 import { ModelSelector } from "@/components/chat/model-selector";
-import type { Message, Conversation } from '@/lib/types';
-import { updateConversation } from '@/lib/local-storage';
 import { useChat } from "@/components/chat-provider";
+import { useChatHandlers } from "@/hooks/use-chat-handlers";
 
 export default function Home() {
   const {
@@ -19,80 +18,18 @@ export default function Home() {
     isAiResponding,
   } = useChat();
 
-  const handleUserMessageSend = (newUserMessage: Message) => {
-    if (!activeConversation) {
-      console.error("handleUserMessageSend: No active conversation.");
-      return;
-    }
-
-    const baseMessages = activeConversation.messages || [];
-    const newMessagesArray = [...baseMessages, newUserMessage];
-
-    setMessages(newMessagesArray);
-
-    const updatedConversationForContext: Conversation = {
-      ...activeConversation,
-      messages: newMessagesArray, 
-      updatedAt: new Date(),
-    };
-    setActiveConversation(updatedConversationForContext);
-
-    updateConversation(updatedConversationForContext);
-  };
-
-  const handleAiMessageUpdate = (aiMessageId: string, chunk: string, modelId?: string) => {
-    setMessages(prevDisplayMessages => {
-      let newDisplayMessages;
-      const existingAiMessage = prevDisplayMessages.find(msg => msg.id === aiMessageId);
-
-      if (existingAiMessage) {
-        newDisplayMessages = prevDisplayMessages.map(msg =>
-          msg.id === aiMessageId ? { ...msg, content: msg.content + chunk } : msg
-        );
-      } else {
-        const newAiMessage: Message = {
-          id: aiMessageId,
-          role: 'ai',
-          content: chunk,
-          modelId: modelId || currentModelId,
-          createdAt: new Date(),
-        };
-        newDisplayMessages = [...prevDisplayMessages, newAiMessage];
-      }
-      
-      setActiveConversation(prevActiveConversation => {
-          if (!prevActiveConversation) {
-            console.error("handleAiMessageUpdate: prevActiveConversation is null inside setActiveConversation update.");
-            return null; 
-          }
-          const currentConversationFromList = conversations.find(c => c.id === prevActiveConversation.id);
-          const baseConversation = currentConversationFromList || prevActiveConversation;
-
-          const updatedConv: Conversation = {
-              ...baseConversation,
-              messages: newDisplayMessages,
-              updatedAt: new Date(),
-          };
-          updateConversation(updatedConv);
-          return updatedConv;
-      });
-      
-      return newDisplayMessages;
-    });
-  };
-
-  const handleAiResponseComplete = (aiMessageId: string) => {
-    if (activeConversation && messages.find(msg => msg.id === aiMessageId)) {
-        const finalMessages = messages; 
-        
-        const conversationToPersist: Conversation = {
-            ...activeConversation,
-            messages: [...finalMessages],
-            updatedAt: new Date(),
-        };
-        updateConversation(conversationToPersist);
-    }
-  };
+  const {
+    handleUserMessageSend,
+    handleAiMessageUpdate,
+    handleAiResponseComplete,
+  } = useChatHandlers({
+    messages,
+    setMessages,
+    currentModelId,
+    activeConversation,
+    setActiveConversation,
+    conversations,
+  });
 
   return (
     <div className="flex flex-col h-full">

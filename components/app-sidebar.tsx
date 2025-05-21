@@ -145,7 +145,6 @@ export function AppSidebar() {
         </ScrollArea>
       </SidebarContent>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -164,7 +163,6 @@ export function AppSidebar() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Conversation Name Dialog */}
       <AlertDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <AlertDialogContent onOpenAutoFocus={(e) => {
           e.preventDefault();

@@ -91,21 +91,9 @@ export function MessageInput({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const trimmedMessage = messageContent.trim();
-    if (!trimmedMessage || chatIsAiResponding || !activeConversation) return;
-
+  const handleSendMessageAndGetResponse = async (conversationHistoryForAPI: Message[], aiMessageId: string) => {
     setIsAiResponding(true);
-    
     try {
-      const userMessage = createUserMessage(trimmedMessage);
-      onUserMessageSend(userMessage);
-      setMessageContent("");
-
-      const conversationHistoryForAPI = [...activeConversation.messages, userMessage];
-      
-      const aiMessageId = uuidv4();
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,6 +102,7 @@ export function MessageInput({
           modelId: currentModelId,
         }),
       });
+
       if (!response.ok) {
         const errData = await response.json();
         const errorMessage = errData.error || 'Failed to get AI response';
@@ -129,13 +118,40 @@ export function MessageInput({
       }
     } catch (error) {
       console.error('Error processing message:', error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during submission.";
+      toast.error(`Error: ${errorMessage}`);
+      onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
+    } finally {
+      setIsAiResponding(false);
+    }
+  };
+
+  const handleUserInput = (trimmedMessage: string, activeConversation: Conversation) => {
+    const userMessage = createUserMessage(trimmedMessage);
+    onUserMessageSend(userMessage);
+    setMessageContent("");
+
+    const conversationHistoryForAPI = [...activeConversation.messages, userMessage];
+    return conversationHistoryForAPI;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const trimmedMessage = messageContent.trim();
+    if (!trimmedMessage || chatIsAiResponding || !activeConversation) return;
+
+    try {
+      const aiMessageId = uuidv4();
+      const conversationHistoryForAPI = handleUserInput(trimmedMessage, activeConversation);
+      await handleSendMessageAndGetResponse(conversationHistoryForAPI, aiMessageId);
+
+    } catch (error) {
+      console.error('Error processing message:', error);
       const aiMessageId = uuidv4();
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during submission.";
       toast.error(`Error: ${errorMessage}`);
       onAiMessageUpdate(aiMessageId, `Error: ${errorMessage}`, currentModelId);
       onAiResponseComplete(aiMessageId);
-    } finally {
-      setIsAiResponding(false);
     }
   };
   

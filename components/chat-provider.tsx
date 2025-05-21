@@ -30,6 +30,8 @@ interface ChatContextType {
   setIsAiResponding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+export type UseChatReturn = ChatContextType;
+
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const useChat = () => {
@@ -56,7 +58,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     saveLastSelectedModelId(modelId);
   }, []);
 
-  // Forward declaration for handleNewChat to be used in handleDeleteConversation
   const handleNewChatRef = React.useRef<((modelToSet?: string) => void) | null>(null);
 
   const handleEditConversationName = useCallback((conversationId: string, newName: string) => {
@@ -83,7 +84,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   }, [setActiveConversation, setConversations]);
 
   const handleDeleteConversation = useCallback((conversationId: string) => {
-    deleteConversation(conversationId); // from local-storage.ts
+    deleteConversation(conversationId);
 
     setConversations(prevConversations => {
       const remainingConversations = prevConversations.filter(conv => conv.id !== conversationId);
@@ -143,7 +144,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   }, [setCurrentModelId, setActiveConversation, setMessages, conversations]);
 
-  // Assign the implementation to the ref after it's defined.
   useEffect(() => {
     handleNewChatRef.current = handleNewChat;
   }, [handleNewChat]);
@@ -184,15 +184,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [setCurrentModelId, setActiveConversation, setMessages]);
 
-  // This effect ensures the conversations list is re-sorted and updated
-  // whenever the activeConversation object itself changes, implying its content (like updatedAt) might have.
   useEffect(() => {
     if (activeConversation) {
       setConversations(prevConversations => {
         const listWithUpdatedActiveConv = prevConversations.map(conv =>
           conv.id === activeConversation.id ? activeConversation : conv
         );
-        // Ensure the active conversation is at the top after update
         const sortedList = listWithUpdatedActiveConv.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         return sortedList;
       });

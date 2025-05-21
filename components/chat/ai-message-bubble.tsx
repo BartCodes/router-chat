@@ -14,7 +14,6 @@ export function AIMessageBubble({ message, className }: AIMessageBubbleProps) {
   const prevContentLength = useRef(message.content.length);
   const [scope, animate] = useAnimate();
   
-  // Control the glow effect strength
   const glowStrength = useMotionValue(0);
   const boxShadow = useTransform(
     glowStrength,
@@ -25,33 +24,26 @@ export function AIMessageBubble({ message, className }: AIMessageBubbleProps) {
     ]
   );
   
-  // Scale effect for the message bubble
   const scaleValue = useMotionValue(1);
   const y = useMotionValue(0);
 
-  // Detect streaming state by comparing content length changes
   useEffect(() => {
     const currentLength = message.content.length;
     const contentChanged = currentLength !== prevContentLength.current;
     const contentExists = currentLength > 0;
     
-    // Determine if we're streaming (content changed and exists)
     const streaming = contentChanged && contentExists;
     
     if (streaming) {
-      // Animate glow effect when new content arrives
       animate(glowStrength, 0.8, { duration: 0.3 });
       animate(glowStrength, 0, { duration: 0.7, delay: 0.3 });
       
-      // Subtle scale effect when content grows
       animate(scaleValue, 1.01, { duration: 0.15, ease: "easeOut" });
       animate(scaleValue, 1, { duration: 0.3, delay: 0.15, ease: "easeInOut" });
       
-      // Slight upward motion effect
       animate(y, -2, { duration: 0.15, ease: "easeOut" });
       animate(y, 0, { duration: 0.3, delay: 0.15, ease: "easeInOut" });
       
-      // If we have content, animate the text container
       if (scope.current) {
         animate(scope.current, { opacity: [0.85, 1] }, { duration: 0.3 });
       }
