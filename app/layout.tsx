@@ -22,6 +22,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "RouterChat",
   description: "RouterChat is a web-based AI chatbot interface. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1.0,
+    interactiveWidget: "resizes-content",
+  },
 };
 
 export default function RootLayout({
