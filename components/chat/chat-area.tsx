@@ -147,7 +147,7 @@ export function ChatArea({ messages, conversationId }: ChatAreaProps) {
               <div ref={messagesContainerRef} className="flex flex-col space-y-4 p-4 min-h-full">
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-muted-foreground flex items-baseline">
+                    <div className="text-md sm:text-lg md:text-xl lg:text-2xl text-muted-foreground flex items-baseline">
                       <span>Start a new&nbsp;</span>
                       <div className="w-24 md:w-60">
                         <ContainerTextFlip words={["conversation", "journey", "lesson", "adventure"]} />
