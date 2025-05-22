@@ -112,7 +112,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         }
       }
     }
-  }, [activeConversation, setCurrentModelId, setActiveConversation, setMessages, conversations]);
+  }, [activeConversation, setCurrentModelId, setActiveConversation, setMessages]);
 
   const handleNewChat = useCallback((modelToSet?: string) => {
     const newConversationId = uuidv4();
