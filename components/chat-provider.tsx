@@ -70,7 +70,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         }
         return conv;
       });
-      // Save the specific conversation that was edited to local storage
       if (updatedConvForStorage) {
         updateConversation(updatedConvForStorage);
       }
@@ -86,34 +85,40 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const handleDeleteConversation = useCallback((conversationId: string) => {
     deleteConversation(conversationId);
 
+    let isDeletedActive = false;
     setConversations(prevConversations => {
       const remainingConversations = prevConversations.filter(conv => conv.id !== conversationId);
-      
-      if (activeConversation && activeConversation.id === conversationId) {
-        if (remainingConversations.length > 0) {
-          const nextActive = remainingConversations.sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
-          setActiveConversation(nextActive);
-          setMessages(nextActive.messages);
-          const lastAiMessage = nextActive.messages.filter(m => m.role === 'ai').pop();
-          if (lastAiMessage?.modelId) {
-            setCurrentModelId(lastAiMessage.modelId);
-          } else {
-            setCurrentModelId(loadLastSelectedModelId() || DEFAULT_MODEL_ID);
-          }
-        } else {
-          if (handleNewChatRef.current) {
-            handleNewChatRef.current(); 
-          }
-        }
-      }
+      isDeletedActive = activeConversation?.id === conversationId;
       return remainingConversations;
     });
-  }, [activeConversation, setCurrentModelId, setActiveConversation, setMessages, setConversations]);
+
+    const currentConversations = loadConversations();
+    const remainingConversationsAfterDelete = currentConversations.filter(conv => conv.id !== conversationId);
+
+    if (isDeletedActive) {
+      if (remainingConversationsAfterDelete.length > 0) {
+        const nextActive = remainingConversationsAfterDelete.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+        setActiveConversation(nextActive);
+        setMessages(nextActive.messages);
+        const lastAiMessage = nextActive.messages.filter(m => m.role === 'ai').pop();
+        if (lastAiMessage?.modelId) {
+          setCurrentModelId(lastAiMessage.modelId);
+        } else {
+          setCurrentModelId(loadLastSelectedModelId() || DEFAULT_MODEL_ID);
+        }
+      } else {
+        if (handleNewChatRef.current) {
+          handleNewChatRef.current();
+        }
+      }
+    }
+  }, [activeConversation, setCurrentModelId, setActiveConversation, setMessages, conversations]);
 
   const handleNewChat = useCallback((modelToSet?: string) => {
     const newConversationId = uuidv4();
     let maxNum = 0;
-    conversations.forEach(conv => {
+    const currentConversations = loadConversations();
+    currentConversations.forEach(conv => {
         if (conv.name.startsWith("Conversation #")) {
             const num = parseInt(conv.name.substring("Conversation #".length), 10);
             if (!isNaN(num) && num > maxNum) {
@@ -142,7 +147,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     setMessages([]);
     setCurrentModelId(modelToSet || loadLastSelectedModelId() || DEFAULT_MODEL_ID);
 
-  }, [setCurrentModelId, setActiveConversation, setMessages, conversations]);
+  }, [setCurrentModelId, setActiveConversation, setMessages]);
 
   useEffect(() => {
     handleNewChatRef.current = handleNewChat;
