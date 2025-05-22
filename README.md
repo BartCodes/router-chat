@@ -4,7 +4,7 @@
 
 **Live Demo:** [https://router-chat-sigma.vercel.app/](https://router-chat-sigma.vercel.app/)
 
-RouterChat is a web-based AI chatbot interface built as a portfolio project. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models. The application features a clean, responsive dark-mode design with smooth animations, focusing on showcasing modern frontend and backend development skills.
+RouterChat is a web-based AI chatbot interface. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models. The application features a clean, responsive dark-mode design with smooth animations, focusing on showcasing modern frontend and backend development skills.
 
 ## Features
 
@@ -32,9 +32,9 @@ RouterChat is a web-based AI chatbot interface built as a portfolio project. It 
 - Tailwind CSS
 - shadcn/ui & Aceternity UI
 - Lucide React (Icons)
-- Framer Motion (Animations)
+- Motion (Animations)
 - Browser Local Storage
-- OpenRouter API (for chat completions)
+- OpenRouter API
 
 ## Project Structure
 
