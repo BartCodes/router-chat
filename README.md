@@ -4,26 +4,15 @@
 
 **Live Demo:** [https://router-chat-sigma.vercel.app/](https://router-chat-sigma.vercel.app/)
 
-RouterChat is a web-based AI chatbot interface. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models. The application features a clean, responsive dark-mode design with smooth animations, focusing on showcasing modern frontend and backend development skills.
+RouterChat is a web-based AI chatbot interface. It utilizes Next.js for the frontend and backend and connects to OpenRouter to allow users to interact with various free AI language models. The application features a clean, responsive dark-mode design with smooth animations.
 
 ## Features
 
-- Select AI model from a dropdown.
-- Send messages to the selected AI model.
-- View AI responses streamed in real-time.
-- Display conversation history with distinct user/AI messages.
-- Start new conversations.
-- Conversations are automatically saved to browser local storage.
-- View a list of saved conversations in a sidebar.
-- Automatically name new conversations.
-- Edit conversation names via a context menu.
-- Delete conversations via a context menu.
-- Switch between saved conversations.
-- Last selected AI model is remembered for new conversations.
-- Initial view shows an empty chat window.
-- Toast notifications for API errors.
-- Loading indicator while AI is responding.
-- Input field disabled while AI is responding.
+- AI model selection and real-time streaming responses
+- Conversation management with automatic saving to local storage
+- Sidebar with conversation list, editing, and deletion
+- Persistent model selection and responsive design
+- Toast notifications and loading indicators
 
 ## Technologies Used
 
@@ -50,10 +39,9 @@ The project follows a standard Next.js App Router structure:
 │   ├── page.tsx              # Main page component
 │   └── globals.css           # Global styles (includes Tailwind config)
 ├── components/               # Reusable UI components
-│   ├── ui/                   # shadcn/ui components
+│   ├── ui/                   # shadcn/ui & Aceternity UI components
 │   └── chat/                 # Chat-specific components
 ├── lib/                      # Utility functions, types, constants
-├── public/                   # Static assets
 └── ... (config files, etc.)
 ```
 
