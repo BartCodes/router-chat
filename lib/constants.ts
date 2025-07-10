@@ -5,12 +5,12 @@ export interface OpenRouterModel {
 
 export const SUPPORTED_MODELS: OpenRouterModel[] = [
   {
-    id: 'meta-llama/llama-3.2-3b-instruct:free',
-    name: 'Llama 3.2 3B Instruct',
+    id: 'nousresearch/deephermes-3-llama-3-8b-preview:free',
+    name: 'Llama 3 8B Preview',
   },
   {
-    id: 'google/gemma-3-1b-it:free',
-    name: 'Gemma 3 1B',
+    id: 'Llama 3.3 70B Instruct',
+    name: 'meta-llama/llama-3.3-70b-instruct:free',
   },
   {
     id: 'deepseek/deepseek-chat-v3-0324:free',
