@@ -9,8 +9,8 @@ export const SUPPORTED_MODELS: OpenRouterModel[] = [
     name: 'Llama 3 8B Preview',
   },
   {
-    id: 'Llama 3.3 70B Instruct',
-    name: 'meta-llama/llama-3.3-70b-instruct:free',
+    id: 'meta-llama/llama-3.3-70b-instruct:free',
+    name: 'Llama 3.3 70B Instruct',
   },
   {
     id: 'deepseek/deepseek-chat-v3-0324:free',
